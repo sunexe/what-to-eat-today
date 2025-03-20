@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif; /* 更改为更高端的字体 */
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); /* 保持背景渐变 */
+            background: linear-gradient(135deg, #7390b6 0%, #d5d7d9 100%); /* 保持背景渐变 */
             min-height: 100vh; /* 保持最小高度 */
             margin: 0; /* 保持默认边距去除 */
             display: flex; /* 保持flex布局 */
@@ -17,13 +17,20 @@
         }
 
         .container {
-            background: white; /* 保持背景颜色 */
-            padding: 40px 60px; /* 保持内边距 */
-            border-radius: 20px; /* 保持圆角 */
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); /* 增加阴影效果 */
-            text-align: center; /* 保持文本居中 */
-            max-width: 600px; /* 保持最大宽度 */
-            width: 100%; /* 保持宽度 */
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 60px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
         }
 
         h1 {
@@ -63,20 +70,22 @@
         }
 
         button {
-            background: #3498db; /* 保持背景颜色 */
-            color: white; /* 保持文字颜色 */
-            border: none; /* 保持去除边框 */
-            padding: 15px 30px; /* 保持内边距 */
-            border-radius: 50px; /* 保持圆角 */
-            cursor: pointer; /* 保持鼠标悬停样式 */
-            font-size: 1em; /* 保持字体大小 */
-            transition: all 0.3s ease; /* 保持过渡效果 */
-            margin: 0 10px; /* 保持左右外边距 */
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
         }
 
         button:hover {
-            background: #2980b9; /* 保持悬停背景颜色 */
-            transform: translateY(-2px); /* 保持悬停时的Y轴偏移 */
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
         }
 
         input[type="file"] {
@@ -99,9 +108,20 @@
             font-size: 0.8em; /* 保持字体大小 */
             color: #666; /* 保持颜色 */
         }
+
+        .result-animation {
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
+    <audio id="rollSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1001.mp3" preload="auto"></audio>
+    <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
     <div class="container"> <!-- 容器开始 -->
         <h1>今天吃什么？</h1> <!-- 标题 -->
 
@@ -150,40 +170,74 @@
         });
 
         function startRandom() {
-            if (restaurants.length === 0) { // 如果没有餐厅列表则提示
+            if (restaurants.length === 0) {
                 alert('请先上传有效的餐厅列表');
                 return;
             }
 
-            document.getElementById('loader').style.display = 'block'; // 显示加载动画
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('rollSound').play();
             
-            const randomDuration = 5000 + Math.random() * 5000; // 设置随机持续时间5-10秒
+            const randomDuration = 5000 + Math.random() * 5000;
             intervalId = setInterval(() => {
-                const randomIndex = Math.floor(Math.random() * restaurants.length); // 随机选择一个餐厅索引
-                const newRestaurant = restaurants[randomIndex]; // 获取随机餐厅
+                const randomIndex = Math.floor(Math.random() * restaurants.length);
+                const newRestaurant = restaurants[randomIndex];
                 
-                // 动画效果
                 const display = document.getElementById('restaurant-display');
-                display.style.opacity = 0; // 设置透明度为0
+                display.style.opacity = 0;
                 setTimeout(() => {
-                    display.textContent = newRestaurant; // 更新显示文本
-                    display.style.opacity = 1; // 设置透明度为1
-                }, 300); // 延迟300毫秒
+                    display.textContent = newRestaurant;
+                    display.style.opacity = 1;
+                }, 100);
                 
-                currentRestaurant = newRestaurant; // 更新当前餐厅
-            }, 100); // 每100毫秒更新一次
+                currentRestaurant = newRestaurant;
+            }, 100);
 
             setTimeout(() => {
-                clearInterval(intervalId); // 清除定时器
-                intervalId = null; // 重置定时器ID
-                document.getElementById('loader').style.display = 'none'; // 隐藏加载动画
+                clearInterval(intervalId);
+                intervalId = null;
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('rollSound').pause();
+                document.getElementById('rollSound').currentTime = 0;
+                document.getElementById('successSound').play();
                 
-                // 最终展示动画
                 const display = document.getElementById('restaurant-display');
-                display.style.fontSize = '3em'; // 设置字体大小为3em
-                display.style.color = '#e74c3c'; // 设置颜色为红色
-            }, randomDuration); // 延迟随机持续时间
+                display.style.fontSize = '3em';
+                display.style.color = '#e74c3c';
+                display.classList.add('result-animation');
+                
+                // 添加五彩纸屑效果
+                createConfetti();
+            }, randomDuration);
         }
+
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.cssText = `
+                    position: absolute;
+                    width: 10px;
+                    height: 10px;
+                    background: ${['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'][Math.floor(Math.random() * 5)]};
+                    left: ${Math.random() * 100}vw;
+                    top: -10px;
+                    transform: rotate(${Math.random() * 360}deg);
+                    animation: fall ${Math.random() * 3 + 2}s linear;
+                `;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        document.body.insertAdjacentHTML('beforeend', `
+            <style>
+                @keyframes fall {
+                    to {
+                        transform: translateY(100vh) rotate(960deg);
+                    }
+                }
+            </style>
+        `);
     </script>
 </body>
 </html>
