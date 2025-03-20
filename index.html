@@ -3,7 +3,7 @@
 <html lang="zh-CN"> <!-- 设置网页语言为中文 -->
 <head>
     <meta charset="UTF-8"> <!-- 设置字符编码为UTF-8 -->
-    <title>今天吃什么</title> <!-- 设置网页标题 -->
+    <title>智能用餐决策系统</title> <!-- 修改网页标题 -->
     <style>
         body {
             font-family: 'Roboto', sans-serif; /* 更改为更高端的字体 */
@@ -120,24 +120,24 @@
     </style>
 </head>
 <body>
-    <audio id="rollSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1001.mp3" preload="auto"></audio>
-    <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+    <audio id="rollSound" src="Slots_Rolling.mp3" preload="auto"></audio>
+    <audio id="successSound" src="celbell2.mp3" preload="auto"></audio>
     <div class="container"> <!-- 容器开始 -->
-        <h1>今天吃什么？</h1> <!-- 标题 -->
+        <h1>智能用餐决策系统</h1> <!-- 修改标题 -->
 
-        <div id="restaurant-display">请先上传餐厅列表</div> <!-- 餐厅显示区域 -->
+        <div id="restaurant-display">请先上传餐厅列表以启动决策</div> <!-- 餐厅显示区域 -->
 
         <div id="restaurant-list" style="margin-top: 20px;"></div> <!-- 新增餐厅列表显示区域 -->
 
         <div class="controls"> <!-- 控制按钮区域开始 -->
             <input type="file" id="fileInput" accept=".txt"> <!-- 文件上传输入框 -->
-            <button onclick="startRandom()">开始选择</button> <!-- 开始选择按钮 -->
+            <button onclick="startRandom()">启动决策</button> <!-- 开始选择按钮 -->
         </div> <!-- 控制按钮区域结束 -->
 
         <div id="loader" class="loader" style="display: none;"></div> <!-- 加载动画区域 -->
     </div> <!-- 容器结束 -->
 
-    <div class="version">版本号: 0.3.21</div> <!-- 版本号显示区域 -->
+    <div class="version">版本号: 0.4.3</div> <!-- 版本号显示区域 -->
 
     <script>
         let restaurants = []; // 存储餐厅列表
@@ -155,7 +155,7 @@
                     .filter(line => line.length > 0); // 过滤掉空行
                     
                 document.getElementById('restaurant-display').textContent = 
-                    `已有 ${restaurants.length} 个餐厅备选，请点击“开始选择”`; // 更新显示文本
+                    `已有 ${restaurants.length} 个餐厅，请点击“启动决策”`; // 更新显示文本
                 
                 // 更新餐厅列表显示
                 const restaurantListDiv = document.getElementById('restaurant-list');
