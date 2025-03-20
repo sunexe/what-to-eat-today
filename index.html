@@ -1,0 +1,189 @@
+<!DOCTYPE html> <!-- 文档类型声明 -->
+<!-- 作者：SUNEXE 2025.2.21 -->
+<html lang="zh-CN"> <!-- 设置网页语言为中文 -->
+<head>
+    <meta charset="UTF-8"> <!-- 设置字符编码为UTF-8 -->
+    <title>今天吃什么</title> <!-- 设置网页标题 -->
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif; /* 更改为更高端的字体 */
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); /* 保持背景渐变 */
+            min-height: 100vh; /* 保持最小高度 */
+            margin: 0; /* 保持默认边距去除 */
+            display: flex; /* 保持flex布局 */
+            justify-content: center; /* 保持水平居中 */
+            align-items: center; /* 保持垂直居中 */
+            position: relative; /* 保持相对定位 */
+        }
+
+        .container {
+            background: white; /* 保持背景颜色 */
+            padding: 40px 60px; /* 保持内边距 */
+            border-radius: 20px; /* 保持圆角 */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); /* 增加阴影效果 */
+            text-align: center; /* 保持文本居中 */
+            max-width: 600px; /* 保持最大宽度 */
+            width: 100%; /* 保持宽度 */
+        }
+
+        h1 {
+            color: #333; /* 保持颜色 */
+            margin-bottom: 30px; /* 保持底部外边距 */
+            font-size: 2.5em; /* 保持字体大小 */
+            text-transform: uppercase; /* 保持文本为大写 */
+            letter-spacing: 2px; /* 保持字母间距 */
+        }
+
+        #restaurant-display {
+            font-size: 2em; /* 保持字体大小 */
+            font-weight: bold; /* 保持字体加粗 */
+            color: #555; /* 保持颜色 */
+            margin: 30px 0; /* 保持上下外边距 */
+            min-height: 80px; /* 保持最小高度 */
+            transition: all 0.3s ease; /* 保持过渡效果 */
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3; /* 保持边框 */
+            border-top: 8px solid #3498db; /* 保持顶部边框颜色 */
+            border-radius: 50%; /* 保持圆角 */
+            width: 60px; /* 保持宽度 */
+            height: 60px; /* 保持高度 */
+            animation: spin 1s linear infinite; /* 保持动画 */
+            margin: 20px auto; /* 保持上下外边距和水平居中 */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); } /* 保持动画初始状态 */
+            100% { transform: rotate(360deg); } /* 保持动画结束状态 */
+        }
+
+        .controls {
+            margin-top: 30px; /* 保持顶部外边距 */
+        }
+
+        button {
+            background: #3498db; /* 保持背景颜色 */
+            color: white; /* 保持文字颜色 */
+            border: none; /* 保持去除边框 */
+            padding: 15px 30px; /* 保持内边距 */
+            border-radius: 50px; /* 保持圆角 */
+            cursor: pointer; /* 保持鼠标悬停样式 */
+            font-size: 1em; /* 保持字体大小 */
+            transition: all 0.3s ease; /* 保持过渡效果 */
+            margin: 0 10px; /* 保持左右外边距 */
+        }
+
+        button:hover {
+            background: #2980b9; /* 保持悬停背景颜色 */
+            transform: translateY(-2px); /* 保持悬停时的Y轴偏移 */
+        }
+
+        input[type="file"] {
+            margin: 20px 0; /* 保持上下外边距 */
+            width: 200px; /* 保持宽度 */
+            height: 40px; /* 保持高度 */
+        }
+
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.5s; /* 保持过渡效果 */
+        }
+        .fade-enter, .fade-leave-to {
+            opacity: 0; /* 保持透明度 */
+        }
+
+        .version {
+            position: absolute; /* 保持绝对定位 */
+            bottom: 10px; /* 保持距离底部10px */
+            right: 10px; /* 保持距离右边10px */
+            font-size: 0.8em; /* 保持字体大小 */
+            color: #666; /* 保持颜色 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container"> <!-- 容器开始 -->
+        <h1>今天吃什么？</h1> <!-- 标题 -->
+
+        <div id="restaurant-display">请先上传餐厅列表</div> <!-- 餐厅显示区域 -->
+
+        <div id="restaurant-list" style="margin-top: 20px;"></div> <!-- 新增餐厅列表显示区域 -->
+
+        <div class="controls"> <!-- 控制按钮区域开始 -->
+            <input type="file" id="fileInput" accept=".txt"> <!-- 文件上传输入框 -->
+            <button onclick="startRandom()">开始选择</button> <!-- 开始选择按钮 -->
+        </div> <!-- 控制按钮区域结束 -->
+
+        <div id="loader" class="loader" style="display: none;"></div> <!-- 加载动画区域 -->
+    </div> <!-- 容器结束 -->
+
+    <div class="version">版本号: 0.3.21</div> <!-- 版本号显示区域 -->
+
+    <script>
+        let restaurants = []; // 存储餐厅列表
+        let intervalId = null; // 存储定时器ID
+        let currentRestaurant = ''; // 存储当前显示的餐厅
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0]; // 获取上传的文件
+            if (!file) return; // 如果没有文件则返回
+
+            const reader = new FileReader(); // 创建文件读取对象
+            reader.onload = function(e) {
+                restaurants = e.target.result.split('\n') // 读取文件内容并分割成数组
+                    .map(line => line.trim()) // 去除每行首尾空格
+                    .filter(line => line.length > 0); // 过滤掉空行
+                    
+                document.getElementById('restaurant-display').textContent = 
+                    `已有 ${restaurants.length} 个餐厅备选，请点击“开始选择”`; // 更新显示文本
+                
+                // 更新餐厅列表显示
+                const restaurantListDiv = document.getElementById('restaurant-list');
+                const chunkSize = 5; // 每行显示的餐厅数量
+                const restaurantChunks = [];
+                for (let i = 0; i < restaurants.length; i += chunkSize) {
+                    restaurantChunks.push(restaurants.slice(i, i + chunkSize)); // 分割数组
+                }
+                restaurantListDiv.innerHTML = restaurantChunks.map(chunk => `<p>${chunk.join(', ')}</p>`).join(''); // 渲染到页面
+            };
+            reader.readAsText(file); // 读取文件内容
+        });
+
+        function startRandom() {
+            if (restaurants.length === 0) { // 如果没有餐厅列表则提示
+                alert('请先上传有效的餐厅列表');
+                return;
+            }
+
+            document.getElementById('loader').style.display = 'block'; // 显示加载动画
+            
+            const randomDuration = 5000 + Math.random() * 5000; // 设置随机持续时间5-10秒
+            intervalId = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * restaurants.length); // 随机选择一个餐厅索引
+                const newRestaurant = restaurants[randomIndex]; // 获取随机餐厅
+                
+                // 动画效果
+                const display = document.getElementById('restaurant-display');
+                display.style.opacity = 0; // 设置透明度为0
+                setTimeout(() => {
+                    display.textContent = newRestaurant; // 更新显示文本
+                    display.style.opacity = 1; // 设置透明度为1
+                }, 300); // 延迟300毫秒
+                
+                currentRestaurant = newRestaurant; // 更新当前餐厅
+            }, 100); // 每100毫秒更新一次
+
+            setTimeout(() => {
+                clearInterval(intervalId); // 清除定时器
+                intervalId = null; // 重置定时器ID
+                document.getElementById('loader').style.display = 'none'; // 隐藏加载动画
+                
+                // 最终展示动画
+                const display = document.getElementById('restaurant-display');
+                display.style.fontSize = '3em'; // 设置字体大小为3em
+                display.style.color = '#e74c3c'; // 设置颜色为红色
+            }, randomDuration); // 延迟随机持续时间
+        }
+    </script>
+</body>
+</html>
